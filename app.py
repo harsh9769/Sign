@@ -6,7 +6,7 @@ import numpy as np
 app = Flask(__name__)
 
 # Load YOLO model
-model = YOLO(r"C:\Projects\Sign_Language_Detect\best.pt")
+model = YOLO(r"./best.pt")
 
 # Initialize webcam
 cap = cv2.VideoCapture(0)
