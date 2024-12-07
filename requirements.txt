@@ -1,5 +1,7 @@
-flask
-opencv-python
-numpy
+Flask
+flask-socketio
 ultralytics
+opencv-python
+Pillow
+redis
 pytest

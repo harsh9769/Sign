@@ -1,16 +1,28 @@
-FROM python:3.8-slim
+# Use NVIDIA's base image with GPU support and Python pre-installed
+FROM nvidia/cuda:11.8.0-runtime-ubuntu20.04
 
-# Install OpenCV dependencies
-RUN apt-get update && \
-    apt-get install -y libgl1-mesa-glx && \
+# Install Python and required system dependencies for OpenCV and Redis
+RUN apt-get update && apt-get install -y \
+    python3.8 \
+    python3-pip \
+    python3-distutils \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    redis-server && \
     apt-get clean
 
+# Set the working directory
 WORKDIR /app
 
+# Copy application code to the container
 COPY . /app
 
-RUN pip install -r requirements.txt
+# Install Python dependencies
+RUN pip3 install --upgrade pip && \
+    pip3 install -r requirements.txt
 
-EXPOSE 5000
+# Expose the application port and Redis port
+EXPOSE 5000 6379
 
-CMD ["python", "app.py"]
+# Start Redis server and Flask app
+CMD ["sh", "-c", "redis-server --daemonize yes && python3 app.py"]

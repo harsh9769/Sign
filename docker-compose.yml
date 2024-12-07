@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  redis:
+    image: redis:6.2
+    container_name: redis_service
+    ports:
+      - "6379:6379"
+    command: ["redis-server"]
+
+  flask_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flask_app_service
+    ports:
+      - "5000:5000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis

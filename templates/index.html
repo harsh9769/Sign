@@ -13,20 +13,65 @@
             background-color: #f0f0f0;
             height: 100vh;
             margin: 0;
+            font-family: Arial, sans-serif;
         }
-        video {
+        canvas {
             width: 80%;
             max-width: 800px;
             border: 5px solid #333;
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
         }
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
     <h1>Real-Time Object Detection</h1>
-    <div>
-        <img src="/video_feed" alt="Camera Feed">
-    </div>
+    <canvas id="output"></canvas>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        const socket = io.connect();
+        const canvas = document.getElementById('output');
+        const ctx = canvas.getContext('2d');
+
+        async function startWebRTC() {
+            try {
+                // Access user's webcam
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.play();
+
+                video.addEventListener('loadeddata', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+
+                    setInterval(() => {
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        const frameData = canvas.toDataURL('image/jpeg').split(',')[1];
+                        socket.emit('frame', frameData);
+                    }, 200); // Process frames every 200ms (5 FPS)
+                });
+
+                socket.on('annotated_frame', (data) => {
+                    const annotatedFrame = new Image();
+                    annotatedFrame.src = 'data:image/jpeg;base64,' + data.frame;
+
+                    annotatedFrame.onload = () => {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(annotatedFrame, 0, 0, canvas.width, canvas.height);
+                    };
+                });
+            } catch (error) {
+                console.error("Error accessing camera:", error);
+                alert("Unable to access camera. Please allow access or check your device settings.");
+            }
+        }
+
+        startWebRTC();
+    </script>
 </body>
 </html>
