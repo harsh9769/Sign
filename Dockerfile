@@ -1,24 +1,20 @@
-# Base Image with CUDA support
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu20.04
+# Base Image
+FROM python:3.8-slim
 
-# Set environment variables
+# Set environment variables to avoid prompts
 ENV DEBIAN_FRONTEND=noninteractive \
-    TZ=Etc/UTC \
-    NVIDIA_VISIBLE_DEVICES=all \
-    NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    TZ=Etc/UTC
 
 # Update and install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3.8 \
-    python3-pip \
     tzdata \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy requirements and install dependencies
+# Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -27,4 +23,4 @@ COPY . .
 
 # Expose port and specify the entry point
 EXPOSE 5000
-CMD ["python3", "app.py"]
+CMD ["python", "app.py"]
