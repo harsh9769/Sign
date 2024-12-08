@@ -1,26 +1,22 @@
-# Base Image
-FROM python:3.8-slim
+FROM ultralytics/ultralytics:latest
 
-# Set environment variables to avoid prompts
-ENV DEBIAN_FRONTEND=noninteractive \
-    TZ=Etc/UTC
+# Set working directory
+WORKDIR /app
 
-# Update and install dependencies
+# Install additional dependencies (if needed)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    tzdata \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
-WORKDIR /app
-
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
+# Copy application files
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy application code
 COPY . .
 
-# Expose port and specify the entry point
+# Expose port
 EXPOSE 5000
+
+# Run the app
 CMD ["python", "app.py"]

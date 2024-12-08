@@ -1,7 +1,6 @@
 Flask
 flask-socketio
 ultralytics
-opencv-python
 Pillow
 redis
 pytest
