@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements.txt ./
+COPY requirements.txt ./ 
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code
@@ -21,5 +21,5 @@ COPY . .
 # Expose port for Flask app
 EXPOSE 5000
 
-# Start the application with Gunicorn and Eventlet worker
-CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app", "--worker-class", "eventlet", "--workers", "1"]
+# Start the application with Flask's development server (removes Gunicorn)
+CMD ["python", "app.py"]
