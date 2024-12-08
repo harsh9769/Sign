@@ -24,7 +24,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY . .
 
 # Expose port for Flask app
-EXPOSE 5000
+EXPOSE 8000
 
 # Start the application with Flask's development server
 CMD ["python", "app.py"]

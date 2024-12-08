@@ -78,4 +78,4 @@ def index():
 if __name__ == "__main__":
     logging.info("Starting Flask-SocketIO app...")
     # Make sure to bind to 0.0.0.0 to be accessible externally, especially in Docker
-    socketio.run(app, host="0.0.0.0", port=5000,allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=8000,allow_unsafe_werkzeug=True)
