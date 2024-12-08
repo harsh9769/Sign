@@ -7,32 +7,10 @@ import numpy as np
 from io import BytesIO
 from PIL import Image
 import logging
-import redis
-import time
 
 # Initialize Flask and SocketIO
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*", message_queue="redis://redis:6379")  # Redis connection via service name
-
-# Redis connection with retries
-def connect_to_redis():
-    """Connect to the Redis server with retries."""
-    client = None
-    retries = 5
-    while retries > 0:
-        try:
-            client = redis.StrictRedis(host='redis', port=6379, decode_responses=True)
-            client.ping()  # Test connection
-            logging.info("Connected to Redis")
-            return client
-        except redis.ConnectionError:
-            retries -= 1
-            logging.warning(f"Redis connection failed. Retrying... {retries} retries left.")
-            time.sleep(2)  # Wait for 2 seconds before retrying
-    raise Exception("Failed to connect to Redis after several attempts")
-
-# Establish Redis connection
-redis_client = connect_to_redis()
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Load the YOLO model once at startup
 model = YOLO("./best.pt")
@@ -79,18 +57,7 @@ def process_frame(frame_data):
 def handle_frame(frame_data):
     """Handle incoming frame data from the client."""
     logging.info("Received a new frame for processing")
-    task_id = f"frame_task_{redis_client.incr('task_id')}"
-    redis_client.set(task_id, frame_data)
-    socketio.start_background_task(target=process_and_emit, task_id=task_id)
-
-
-def process_and_emit(task_id):
-    """Process the frame from Redis and emit the result to the client."""
     try:
-        frame_data = redis_client.get(task_id)
-        if not frame_data:
-            raise ValueError("No frame data found in Redis")
-
         annotated_frame = process_frame(frame_data)
         if annotated_frame:
             socketio.emit('annotated_frame', {'frame': annotated_frame})
@@ -99,8 +66,6 @@ def process_and_emit(task_id):
     except Exception as e:
         logging.error(f"Error processing frame: {e}")
         socketio.emit('error', {'message': f"Error processing frame: {str(e)}"})
-    finally:
-        redis_client.delete(task_id)
 
 
 @app.route('/')
@@ -113,4 +78,4 @@ def index():
 if __name__ == "__main__":
     logging.info("Starting Flask-SocketIO app...")
     # Make sure to bind to 0.0.0.0 to be accessible externally, especially in Docker
-    socketio.run(app, host="0.0.0.0", port=5000, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)
