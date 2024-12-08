@@ -12,7 +12,7 @@ import time
 
 # Initialize Flask and SocketIO
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*", message_queue="redis://redis:6379")  # Use Redis service name
+socketio = SocketIO(app, cors_allowed_origins="*", message_queue="redis://redis:6379")  # Redis connection via service name
 
 # Redis connection with retries
 def connect_to_redis():
@@ -22,8 +22,7 @@ def connect_to_redis():
     while retries > 0:
         try:
             client = redis.StrictRedis(host='redis', port=6379, decode_responses=True)
-            # Test connection
-            client.ping()
+            client.ping()  # Test connection
             logging.info("Connected to Redis")
             return client
         except redis.ConnectionError:
