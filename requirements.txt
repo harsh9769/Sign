@@ -7,5 +7,6 @@ numpy
 Pillow
 ultralytics
 pytest
-eventlet
+gunicorn
+
 
