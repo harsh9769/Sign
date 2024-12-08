@@ -11,6 +11,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    networks:
+      - app_network
 
   flask_app:
     build:
@@ -23,5 +25,10 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
-      redis:
-        condition: service_healthy
+      - redis
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge

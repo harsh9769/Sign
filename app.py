@@ -8,13 +8,32 @@ from io import BytesIO
 from PIL import Image
 import logging
 import redis
+import time
 
 # Initialize Flask and SocketIO
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", message_queue="redis://redis:6379")  # Use Redis service name
 
-# Redis connection
-redis_client = redis.StrictRedis(host='redis', port=6379, decode_responses=True)
+# Redis connection with retries
+def connect_to_redis():
+    """Connect to the Redis server with retries."""
+    client = None
+    retries = 5
+    while retries > 0:
+        try:
+            client = redis.StrictRedis(host='redis', port=6379, decode_responses=True)
+            # Test connection
+            client.ping()
+            logging.info("Connected to Redis")
+            return client
+        except redis.ConnectionError:
+            retries -= 1
+            logging.warning(f"Redis connection failed. Retrying... {retries} retries left.")
+            time.sleep(2)  # Wait for 2 seconds before retrying
+    raise Exception("Failed to connect to Redis after several attempts")
+
+# Establish Redis connection
+redis_client = connect_to_redis()
 
 # Load the YOLO model once at startup
 model = YOLO("./best.pt")
