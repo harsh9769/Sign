@@ -7,18 +7,14 @@ import numpy as np
 from io import BytesIO
 from PIL import Image
 import logging
-import redis  # Redis client
+import redis
 
 # Initialize Flask and SocketIO
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*", message_queue="redis://localhost:6379")
+socketio = SocketIO(app, cors_allowed_origins="*", message_queue="redis://redis:6379")  # Use Redis service name
 
 # Redis connection
-redis_client = redis.StrictRedis(
-    host='redis',  # The service name defined in docker-compose.yml
-    port=6379,
-    decode_responses=True
-)
+redis_client = redis.StrictRedis(host='redis', port=6379, decode_responses=True)
 
 # Load the YOLO model once at startup
 model = YOLO("./best.pt")
@@ -50,9 +46,7 @@ def encode_frame(image):
 
 
 def process_frame(frame_data):
-    """
-    Process a frame using YOLO and return an annotated base64-encoded frame.
-    """
+    """Process a frame using YOLO and return an annotated base64-encoded frame."""
     frame = decode_frame(frame_data)
     if frame is None:
         raise ValueError("Invalid frame data")
@@ -65,10 +59,7 @@ def process_frame(frame_data):
 
 @socketio.on('frame')
 def handle_frame(frame_data):
-    """
-    Handle incoming frame data from the client.
-    Start a background task to process the frame without blocking.
-    """
+    """Handle incoming frame data from the client."""
     logging.info("Received a new frame for processing")
     task_id = f"frame_task_{redis_client.incr('task_id')}"
     redis_client.set(task_id, frame_data)
@@ -102,4 +93,4 @@ def index():
 
 if __name__ == "__main__":
     logging.info("Starting Flask-SocketIO app...")
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True,allow_unsafe_werkzeug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)

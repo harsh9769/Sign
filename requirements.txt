@@ -1,6 +1,8 @@
-Flask
+flask
 flask-socketio
-ultralytics
-Pillow
+eventlet
 redis
-pytest
+opencv-python-headless
+numpy
+Pillow
+ultralytics
