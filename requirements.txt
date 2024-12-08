@@ -7,3 +7,5 @@ numpy
 Pillow
 ultralytics
 pytest
+eventlet
+
